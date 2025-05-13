@@ -1,40 +1,40 @@
 package main;
 
-import controller.AgendaController;
-import controller.ReservaController;
-import controller.UsuarioController;
+import util.ArquivoUtil;
+import model.DadosSistema;
 import view.TelaLogin;
 
-import javax.swing.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class Main {
     public static void main(String[] args) {
-        // Define o estilo visual do sistema para o do SO
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            System.out.println("Não foi possível aplicar o look and feel.");
+
+
+        ArquivoUtil.carregarUsuarios("src/arquivos/usuarios.csv");
+        ArquivoUtil.carregarEspacos("src/arquivos/espacos.csv");
+        ArquivoUtil.carregarReservas("src/arquivos/reservas.csv");
+
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDate hoje = LocalDate.now();
+        for (int i = 0; i < 15; i++) {
+            String dataFormatada = hoje.plusDays(i).format(formatter);
+            DadosSistema.adicionarData(dataFormatada);
         }
 
-        // Inicializa os controllers
-        UsuarioController usuarioController = new UsuarioController();
-        AgendaController agendaController = new AgendaController();
-        ReservaController reservaController = new ReservaController(agendaController); // integração com a agenda
 
-        // Pré-cadastro de espaços disponíveis (poderia vir de arquivo ou banco futuramente)
-        String[] espacos = { "Sala de Reunião 1", "Sala de Reunião 2", "Auditório" };
-        for (String espaco : espacos) {
-            reservaController.adicionarEspaco(espaco);
+        String[] horarios = {
+                "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+                "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+                "17:00", "17:30"
+        };
+        for (String horario : horarios) {
+            DadosSistema.adicionarHorario(horario);
         }
 
-        // Pré-cadastro de horários disponíveis na agenda
-        agendaController.cadastrarAgenda("Sala de Reunião 1", "25/04/2025", "14:00");
-        agendaController.cadastrarAgenda("Sala de Reunião 2", "25/04/2025", "15:00");
-        agendaController.cadastrarAgenda("Auditório", "26/04/2025", "10:00");
 
-        // Inicializa a interface gráfica de forma segura na EDT
-        SwingUtilities.invokeLater(() -> {
-            new TelaLogin(usuarioController, agendaController, reservaController);
-        });
+        javax.swing.SwingUtilities.invokeLater(() -> new TelaLogin().setVisible(true));
     }
 }

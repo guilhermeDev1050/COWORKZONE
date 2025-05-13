@@ -1,134 +1,112 @@
 package view;
 
-import controller.AgendaController;
 import controller.ReservaController;
+import model.DadosSistema;
+import model.Reserva;
+import model.Usuario;
+import util.ArquivoUtil;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.text.MaskFormatter;
 import java.awt.*;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class TelaCadastroAgenda extends TelaBase {
-    private JComboBox<String> comboEspacos;
-    private JFormattedTextField txtData, txtHorario;
-    private final AgendaController agendaController;
-    private final ReservaController reservaController;
+public class TelaAgendamento extends JFrame {
+    private JComboBox<String> comboEspaco;
+    private JComboBox<String> comboData;
+    private JComboBox<String> comboHorario;
+    private JButton botaoConfirmar, botaoVoltar;
+    private Usuario usuarioLogado;
 
-    public TelaCadastroAgenda(AgendaController agendaController, ReservaController reservaController) {
-        super("Cadastro de Agenda", 400, 500); // Título e tamanho da janela
-        this.agendaController = agendaController;
-        this.reservaController = reservaController;
+    public TelaAgendamento(Usuario usuarioLogado) {
+        this.usuarioLogado = usuarioLogado;
 
-        JLabel lblTitulo = criarTitulo("Cadastro de Agenda");
-        lblTitulo.setBorder(new EmptyBorder(20, 0, 10, 0));
-        add(lblTitulo, BorderLayout.NORTH);
+        setTitle("COWORKZONE - Agendamento");
+        setSize(400, 400);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(false);
+        setLayout(null);
 
-        JPanel painelCampos = new JPanel();
-        painelCampos.setLayout(new BoxLayout(painelCampos, BoxLayout.Y_AXIS));
-        painelCampos.setBackground(COR_BRANCO);
-        painelCampos.setBorder(new EmptyBorder(10, 40, 10, 40));
+        JLabel titulo = new JLabel("COWORKZONE");
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titulo.setBounds(130, 10, 200, 30);
+        add(titulo);
 
-        // ComboBox de espaços
-        comboEspacos = new JComboBox<>();
-        comboEspacos.setBorder(BorderFactory.createTitledBorder("Espaço"));
-        comboEspacos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        carregarEspacosDisponiveis();
-        painelCampos.add(comboEspacos);
-        painelCampos.add(Box.createRigidArea(new Dimension(0, 10)));
+        JLabel subtitulo = new JLabel("Agendar Espaço");
+        subtitulo.setFont(new Font("SansSerif", Font.BOLD, 18));
+        subtitulo.setBounds(120, 40, 200, 30);
+        add(subtitulo);
 
-        // Campo com máscara para data
-        try {
-            MaskFormatter maskData = new MaskFormatter("##/##/####");
-            maskData.setPlaceholderCharacter('_');
-            txtData = new JFormattedTextField(maskData);
-            txtData.setBorder(BorderFactory.createTitledBorder("Data (dd/MM/yyyy)"));
-            txtData.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-            txtData.setFont(FONTE_TEXTO);
-            painelCampos.add(txtData);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        painelCampos.add(Box.createRigidArea(new Dimension(0, 10)));
+        JLabel labelEspaco = new JLabel("Espaço");
+        labelEspaco.setBounds(50, 80, 300, 20);
+        add(labelEspaco);
 
-        // Campo com máscara para horário
-        try {
-            MaskFormatter maskHora = new MaskFormatter("##:##");
-            maskHora.setPlaceholderCharacter('_');
-            txtHorario = new JFormattedTextField(maskHora);
-            txtHorario.setBorder(BorderFactory.createTitledBorder("Horário (HH:mm)"));
-            txtHorario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-            txtHorario.setFont(FONTE_TEXTO);
-            painelCampos.add(txtHorario);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        comboEspaco = new JComboBox<>(DadosSistema.espacos.toArray(new String[0]));
+        comboEspaco.setBounds(50, 100, 300, 30);
+        add(comboEspaco);
 
-        add(painelCampos, BorderLayout.CENTER);
+        JLabel labelData = new JLabel("Data");
+        labelData.setBounds(50, 140, 300, 20);
+        add(labelData);
 
-        JButton btnCadastrar = criarBotao("Cadastrar");
-        btnCadastrar.setForeground(COR_PRETO);  // Corrigido aqui
-        btnCadastrar.setBackground(COR_ACENTO);
-        btnCadastrar.setBorder(new EmptyBorder(10, 20, 10, 20));
-        btnCadastrar.addActionListener(e -> cadastrarAgenda());
-        add(btnCadastrar, BorderLayout.SOUTH);
+        comboData = new JComboBox<>(DadosSistema.datas.toArray(new String[0]));
+        comboData.setBounds(50, 160, 300, 30);
+        add(comboData);
 
-        setVisible(true);
-    }
+        JLabel labelHorario = new JLabel("Horário");
+        labelHorario.setBounds(50, 200, 300, 20);
+        add(labelHorario);
 
-    private void carregarEspacosDisponiveis() {
-        List<String> espacos = reservaController.listarEspacos();
-        comboEspacos.removeAllItems();
-        if (espacos != null && !espacos.isEmpty()) {
-            for (String espaco : espacos) {
-                comboEspacos.addItem(espaco);
+        comboHorario = new JComboBox<>(DadosSistema.horarios.toArray(new String[0]));
+        comboHorario.setBounds(50, 220, 300, 30);
+        add(comboHorario);
+
+        botaoConfirmar = new JButton("Confirmar Reserva");
+        botaoConfirmar.setBackground(new Color(51, 51, 41));
+        botaoConfirmar.setForeground(Color.WHITE);
+        botaoConfirmar.setBounds(50, 270, 300, 30);
+        add(botaoConfirmar);
+
+        botaoVoltar = new JButton("Voltar");
+        botaoVoltar.setBounds(50, 310, 300, 30);
+        add(botaoVoltar);
+
+        botaoConfirmar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String espaco = comboEspaco.getSelectedItem().toString();
+                String data = comboData.getSelectedItem().toString();
+                String horario = comboHorario.getSelectedItem().toString();
+
+                if (espaco.isEmpty() || data.isEmpty() || horario.isEmpty()) {
+                    JOptionPane.showMessageDialog(null, "Preencha todos os campos para reservar.", "Erro", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // ✅ Aqui verifica se já existe uma reserva
+                if (ReservaController.reservaExiste(espaco, data, horario)) {
+                    JOptionPane.showMessageDialog(null, "❌ O espaço " + espaco + " já está reservado para " + data + " às " + horario + ".", "Reserva Indisponível", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Caso contrário, cria a reserva
+                ReservaController.criarReserva(espaco, data, horario, usuarioLogado);
+                JOptionPane.showMessageDialog(null, "✅ Reserva confirmada para " + espaco + ", dia " + data + ", às " + horario);
+                new TelaDashboard(usuarioLogado).setVisible(true);
+                dispose();
             }
-        } else {
-            comboEspacos.addItem("Nenhum espaço disponível");
-            comboEspacos.setEnabled(false);
-        }
+        });
+
+        botaoVoltar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new TelaDashboard(usuarioLogado).setVisible(true);
+                dispose();
+            }
+        });
     }
 
-    private void cadastrarAgenda() {
-        String espaco = (String) comboEspacos.getSelectedItem();
-        String data = txtData.getText().trim();
-        String horario = txtHorario.getText().trim();
-
-        if (espaco == null || data.isEmpty() || horario.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Preencha todos os campos!", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (!validarData(data, "dd/MM/yyyy")) {
-            JOptionPane.showMessageDialog(this, "Data inválida!", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        if (!validarData(horario, "HH:mm")) {
-            JOptionPane.showMessageDialog(this, "Horário inválido!", "Erro", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        boolean sucesso = agendaController.cadastrarAgenda(espaco, data, horario);
-
-        if (sucesso) {
-            JOptionPane.showMessageDialog(this, "Agenda cadastrada com sucesso!");
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Já existe um agendamento nesse espaço e horário.", "Erro", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-
-    private boolean validarData(String valor, String formato) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat(formato);
-            sdf.setLenient(false);
-            sdf.parse(valor);
-            return true;
-        } catch (ParseException e) {
-            return false;
-        }
+    public static void main(String[] args) {
+        Usuario usuarioTeste = new Usuario("João Teste", "teste@email.com", "123");
+        new TelaAgendamento(usuarioTeste).setVisible(true);
     }
 }

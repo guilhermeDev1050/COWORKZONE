@@ -1,119 +1,120 @@
 package view;
 
 import controller.ReservaController;
+import model.DadosSistema;
+import model.Usuario;
 import model.Reserva;
-
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.time.LocalDate;
-import java.util.List;
+import java.awt.event.*;
 
-public class TelaReservaEspaco extends TelaBase {
-    private CampoTextoCustom txtNome;
-    private JComboBox<String> cbData, cbHorario, cbEspaco;
-    private ReservaController reservaController;
-    private String emailUsuario;
+public class TelaEditarReserva extends JFrame {
+    private JComboBox<String> comboEspaco;
+    private JComboBox<String> comboData;
+    private JComboBox<String> comboHorario;
+    private JButton botaoSalvar, botaoCancelar;
 
-    public TelaReservaEspaco(ReservaController reservaController, String emailUsuario) {
-        super("Agendar Espaço", 400, 460);
-        this.reservaController = reservaController;
-        this.emailUsuario = emailUsuario;
+    private Usuario usuarioLogado;
+    private Reserva reservaOriginal;
 
-        inicializarComponentes();
-        setVisible(true);
-    }
+    public TelaEditarReserva(Usuario usuario, Reserva reserva) {
+        this.usuarioLogado = usuario;
+        this.reservaOriginal = reserva;
 
-    private void inicializarComponentes() {
-        JLabel lblTitulo = criarTitulo("Agendar Espaço");
-        lblTitulo.setBorder(new EmptyBorder(20, 0, 10, 0));
-        add(lblTitulo, BorderLayout.NORTH);
+        setTitle("COWORKZONE - Editar Reserva");
+        setSize(400, 350);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(false);
+        setLayout(null);
 
-        JPanel painelFormulario = new JPanel();
-        painelFormulario.setLayout(new BoxLayout(painelFormulario, BoxLayout.Y_AXIS));
-        painelFormulario.setBackground(COR_CLARO);
-        painelFormulario.setBorder(new EmptyBorder(10, 40, 10, 40));
+        JLabel titulo = new JLabel("COWORKZONE");
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titulo.setBounds(130, 10, 200, 30);
+        add(titulo);
 
-        txtNome = new CampoTextoCustom("Seu nome");
-        painelFormulario.add(txtNome);
-        painelFormulario.add(Box.createRigidArea(new Dimension(0, 12)));
+        JLabel subtitulo = new JLabel("Editar Reserva");
+        subtitulo.setFont(new Font("SansSerif", Font.BOLD, 18));
+        subtitulo.setBounds(120, 40, 200, 30);
+        add(subtitulo);
 
-        cbData = new JComboBox<>();
-        LocalDate hoje = LocalDate.now();
-        for (int i = 0; i < 7; i++) {
-            cbData.addItem(hoje.plusDays(i).toString());
-        }
-        cbData.setBorder(BorderFactory.createTitledBorder("Data"));
-        cbData.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        painelFormulario.add(cbData);
-        painelFormulario.add(Box.createRigidArea(new Dimension(0, 12)));
+        JLabel labelEspaco = new JLabel("Espaço");
+        labelEspaco.setBounds(50, 80, 300, 20);
+        add(labelEspaco);
 
-        cbHorario = new JComboBox<>();
-        for (int h = 8; h <= 18; h++) {
-            cbHorario.addItem(String.format("%02d:00", h));
-        }
-        cbHorario.setBorder(BorderFactory.createTitledBorder("Horário"));
-        cbHorario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        painelFormulario.add(cbHorario);
-        painelFormulario.add(Box.createRigidArea(new Dimension(0, 12)));
+        comboEspaco = new JComboBox<>(DadosSistema.espacos.toArray(new String[0]));
+        comboEspaco.setSelectedItem(reserva.getEspaco());
+        comboEspaco.setBounds(50, 100, 300, 30);
+        add(comboEspaco);
 
-        cbEspaco = new JComboBox<>();
-        atualizarEspacos();
-        cbEspaco.setBorder(BorderFactory.createTitledBorder("Espaço"));
-        cbEspaco.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        painelFormulario.add(cbEspaco);
+        JLabel labelData = new JLabel("Data");
+        labelData.setBounds(50, 140, 300, 20);
+        add(labelData);
 
-        add(painelFormulario, BorderLayout.CENTER);
+        comboData = new JComboBox<>(DadosSistema.datas.toArray(new String[0]));
+        comboData.setSelectedItem(reserva.getData());
+        comboData.setBounds(50, 160, 300, 30);
+        add(comboData);
 
-        BotaoCustom btnReservar = new BotaoCustom("Reservar");
-        btnReservar.setBorder(new EmptyBorder(12, 20, 12, 20));
-        btnReservar.addActionListener(e -> realizarReserva());
+        JLabel labelHorario = new JLabel("Horário");
+        labelHorario.setBounds(50, 200, 300, 20);
+        add(labelHorario);
 
-        JPanel painelBotao = new JPanel();
-        painelBotao.setBackground(COR_CLARO);
-        painelBotao.add(btnReservar);
+        comboHorario = new JComboBox<>(DadosSistema.horarios.toArray(new String[0]));
+        comboHorario.setSelectedItem(reserva.getHorario());
+        comboHorario.setBounds(50, 220, 300, 30);
+        add(comboHorario);
 
-        add(painelBotao, BorderLayout.SOUTH);
-    }
+        botaoSalvar = new JButton("Salvar Alterações");
+        botaoSalvar.setBackground(new Color(51, 51, 41));
+        botaoSalvar.setForeground(Color.WHITE);
+        botaoSalvar.setBounds(50, 270, 140, 30);
+        add(botaoSalvar);
 
-    private void realizarReserva() {
-        String nome = txtNome.getText().trim();
-        String data = (String) cbData.getSelectedItem();
-        String horario = (String) cbHorario.getSelectedItem();
-        String espaco = (String) cbEspaco.getSelectedItem();
+        botaoCancelar = new JButton("Cancelar Reserva");
+        botaoCancelar.setBounds(210, 270, 140, 30);
+        add(botaoCancelar);
 
-        if (nome.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Informe seu nome.");
-            return;
-        }
+        botaoSalvar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String novoEspaco = comboEspaco.getSelectedItem().toString();
+                String novaData = comboData.getSelectedItem().toString();
+                String novoHorario = comboHorario.getSelectedItem().toString();
 
-        if (espaco == null || espaco.equals("Nenhum espaço disponível")) {
-            JOptionPane.showMessageDialog(this, "Nenhum espaço disponível para agendamento.");
-            return;
-        }
+                boolean sucesso = ReservaController.editarReserva(
+                        reservaOriginal.getEspaco(),
+                        reservaOriginal.getData(),
+                        reservaOriginal.getHorario(),
+                        novoEspaco,
+                        novaData,
+                        novoHorario,
+                        usuarioLogado
+                );
 
-        Reserva reserva = new Reserva(nome, data, horario, espaco, emailUsuario);
-
-        if (reservaController.realizarReserva(reserva)) {
-            JOptionPane.showMessageDialog(this, "Reserva feita com sucesso!");
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Erro ao realizar reserva. Verifique a disponibilidade.");
-        }
-    }
-
-    private void atualizarEspacos() {
-        cbEspaco.removeAllItems();
-        List<String> espacos = reservaController.listarEspacos();
-
-        if (espacos == null || espacos.isEmpty()) {
-            cbEspaco.addItem("Nenhum espaço disponível");
-            cbEspaco.setEnabled(false);
-        } else {
-            for (String espaco : espacos) {
-                cbEspaco.addItem(espaco);
+                if (sucesso) {
+                    JOptionPane.showMessageDialog(null, "Reserva atualizada com sucesso!");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Erro ao atualizar reserva.");
+                }
             }
-            cbEspaco.setEnabled(true);
-        }
+        });
+
+        botaoCancelar.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                boolean sucesso = ReservaController.cancelarReserva(
+                        reservaOriginal.getEspaco(),
+                        reservaOriginal.getData(),
+                        reservaOriginal.getHorario(),
+                        usuarioLogado
+                );
+
+                if (sucesso) {
+                    JOptionPane.showMessageDialog(null, "Reserva cancelada com sucesso.");
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Erro ao cancelar reserva.");
+                }
+            }
+        });
     }
 }

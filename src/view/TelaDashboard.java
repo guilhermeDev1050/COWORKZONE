@@ -1,97 +1,121 @@
 package view;
 
-import controller.ReservaController;
-import controller.UsuarioController;
-import controller.AgendaController;
-import model.Reserva;
-import view.components.TelaBase;
-import view.components.BotaoCustom;
+import model.Usuario;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.util.List;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-public class TelaPrincipal extends TelaBase {
-    private BotaoCustom btnPerfil, btnAgendar, btnMinhasReservas, btnSair;
-    private UsuarioController usuarioController;
-    private ReservaController reservaController;
-    private AgendaController agendaController;
-    private String usuarioEmail;
+public class TelaDashboard extends JFrame {
+    private JButton btnNovaReserva, btnMinhasReservas, btnCancelarReserva, btnEditarPerfil, btnSair, btnCadastroHorarios;
+    private Usuario usuarioLogado;
 
-    public TelaPrincipal(UsuarioController usuarioController, AgendaController agendaController, ReservaController reservaController, String usuarioEmail) {
-        super("Área Principal", 450, 500);
-        this.usuarioController = usuarioController;
-        this.agendaController = agendaController;
-        this.reservaController = reservaController;
-        this.usuarioEmail = usuarioEmail;
+    public TelaDashboard(Usuario usuarioLogado) {
+        this.usuarioLogado = usuarioLogado;
 
+        setTitle("COWORKZONE - Dashboard");
+        setSize(400, 450);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        inicializarComponentes();
-        setVisible(true);
-    }
+        setLocationRelativeTo(null);
+        setResizable(false);
+        setLayout(null);
 
-    private void inicializarComponentes() {
-        // Logo
-        ImageIcon logoIcon = new ImageIcon("src/assets/logo - Coworking.png");
-        JLabel lblLogo = new JLabel(logoIcon);
-        lblLogo.setHorizontalAlignment(SwingConstants.CENTER);
-        lblLogo.setBorder(new EmptyBorder(20, 0, 10, 0));
-        add(lblLogo, BorderLayout.NORTH);
+        JLabel titulo = new JLabel("COWORKZONE");
+        titulo.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titulo.setBounds(130, 10, 200, 30);
+        add(titulo);
 
-        // Painel de Botões
-        JPanel painelBotoes = new JPanel();
-        painelBotoes.setLayout(new BoxLayout(painelBotoes, BoxLayout.Y_AXIS));
-        painelBotoes.setBackground(COR_CLARO);
-        painelBotoes.setBorder(new EmptyBorder(30, 40, 30, 40));
+        JLabel boasVindas = new JLabel("Bem-vindo, " + usuarioLogado.getNome() + "!");
+        boasVindas.setFont(new Font("SansSerif", Font.BOLD, 16));
+        boasVindas.setBounds(100, 50, 250, 30);
+        add(boasVindas);
 
-        // Botão: Meu Perfil
-        btnPerfil = new BotaoCustom("Meu Perfil");
-        btnPerfil.addActionListener(e -> new TelaPerfilUsuario(usuarioController, usuarioEmail));
-        painelBotoes.add(btnPerfil);
-        painelBotoes.add(Box.createRigidArea(new Dimension(0, 10)));
+        btnNovaReserva = new JButton("+ Nova Reserva");
+        btnNovaReserva.setBounds(80, 100, 240, 30);
+        configurarBotao(btnNovaReserva);
+        add(btnNovaReserva);
 
-        // Botão: Agendar Espaço
-        btnAgendar = new BotaoCustom("Agendar Espaço");
-        btnAgendar.addActionListener(e -> new TelaReservaEspaco(reservaController, usuarioEmail));
-        painelBotoes.add(btnAgendar);
-        painelBotoes.add(Box.createRigidArea(new Dimension(0, 10)));
+        btnMinhasReservas = new JButton("Minhas Reservas");
+        btnMinhasReservas.setBounds(80, 140, 240, 30);
+        configurarBotao(btnMinhasReservas);
+        add(btnMinhasReservas);
 
-        // Botão: Minhas Reservas
-        btnMinhasReservas = new BotaoCustom("Minhas Reservas");
-        btnMinhasReservas.addActionListener(e -> exibirReservas());
-        painelBotoes.add(btnMinhasReservas);
-        painelBotoes.add(Box.createRigidArea(new Dimension(0, 10)));
+        btnCancelarReserva = new JButton("Cancelar Reserva");
+        btnCancelarReserva.setBounds(80, 180, 240, 30);
+        configurarBotao(btnCancelarReserva);
+        add(btnCancelarReserva);
 
-        // Botão: Sair
-        btnSair = new BotaoCustom("Sair");
-        btnSair.addActionListener(e -> {
-            int resposta = JOptionPane.showConfirmDialog(this, "Deseja realmente sair?", "Confirmação", JOptionPane.YES_NO_OPTION);
-            if (resposta == JOptionPane.YES_OPTION) {
-                new TelaLogin(usuarioController, agendaController, reservaController);
+        btnEditarPerfil = new JButton("Editar Perfil");
+        btnEditarPerfil.setBounds(80, 220, 240, 30);
+        configurarBotao(btnEditarPerfil);
+        add(btnEditarPerfil);
+
+        int proximaAltura = 260;
+
+        if (usuarioLogado.getEmail().equals("admin") && usuarioLogado.getSenha().equals("admin123")) {
+            btnCadastroHorarios = new JButton("Cadastro de Espaços");
+            btnCadastroHorarios.setBounds(80, proximaAltura, 240, 30);
+            configurarBotao(btnCadastroHorarios);
+            add(btnCadastroHorarios);
+            proximaAltura += 40;
+
+            btnCadastroHorarios.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    new TelaCadastroHorarios("admin", "admin123").setVisible(true);
+                    dispose();
+                }
+            });
+        }
+
+        btnSair = new JButton("Sair");
+        btnSair.setBounds(80, proximaAltura, 240, 30);
+        configurarBotao(btnSair);
+        add(btnSair);
+
+        // Ações dos botões
+        btnNovaReserva.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new TelaAgendamento(usuarioLogado).setVisible(true);
                 dispose();
             }
         });
-        painelBotoes.add(btnSair);
 
-        add(painelBotoes, BorderLayout.CENTER);
+        btnMinhasReservas.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new TelaMinhasReservas(usuarioLogado).setVisible(true);
+                dispose();
+            }
+        });
+
+        btnCancelarReserva.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new TelaCancelarReserva(usuarioLogado).setVisible(true);
+                dispose();
+            }
+        });
+
+        btnEditarPerfil.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new TelaEditarPerfil(usuarioLogado).setVisible(true);
+                dispose();
+            }
+        });
+
+        btnSair.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                new TelaLogin().setVisible(true);
+                dispose();
+            }
+        });
     }
 
-    private void exibirReservas() {
-        List<Reserva> reservas = reservaController.getReservasPorUsuario(usuarioEmail);
-        StringBuilder sb = new StringBuilder();
+    private void configurarBotao(JButton botao) {
+        botao.setBackground(new Color(51, 51, 41));
+        botao.setForeground(Color.WHITE);
+    }
 
-        if (reservas == null || reservas.isEmpty()) {
-            sb.append("Você ainda não possui reservas.");
-        } else {
-            for (Reserva r : reservas) {
-                sb.append("Espaço: ").append(r.getEspaco())
-                        .append(" | Data: ").append(r.getData())
-                        .append(" | Horário: ").append(r.getHorario())
-                        .append("\n");
-            }
-        }
-
-        JOptionPane.showMessageDialog(this, sb.toString(), "Minhas Reservas", JOptionPane.INFORMATION_MESSAGE);
+    public static void main(String[] args) {
+        JOptionPane.showMessageDialog(null, "Esta tela deve ser chamada com um usuário logado.");
     }
 }
